@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const data = JSON.parse(message.toString());
         if (data.type === 'subscribe' && data.jobId) {
           // Subscribe to training job updates
-          ws.jobId = data.jobId;
+          (ws as any).jobId = data.jobId;
         }
       } catch (error) {
         console.error('WebSocket message error:', error);
@@ -58,7 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   trainingService.setBroadcastFunction(broadcastTrainingUpdate);
 
   // Dataset upload endpoint
-  app.post('/api/datasets/upload', upload.single('file'), async (req, res) => {
+  app.post('/api/datasets/upload', upload.single('file'), async (req: any, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });

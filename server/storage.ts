@@ -144,6 +144,8 @@ export class MemStorage implements IStorage {
     const model: TrainedModel = {
       ...modelData,
       id,
+      size: modelData.size || null,
+      trainingJobId: modelData.trainingJobId || null,
       deployed: false,
       deploymentEndpoint: null,
       createdAt: new Date(),
@@ -179,6 +181,7 @@ export class MemStorage implements IStorage {
     const dataset: Dataset = {
       ...datasetData,
       id,
+      exampleCount: datasetData.exampleCount || null,
       createdAt: new Date(),
     };
     this.datasets.set(id, dataset);
