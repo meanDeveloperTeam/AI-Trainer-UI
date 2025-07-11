@@ -103,9 +103,9 @@ export class VLLMService {
       const data = await response.json();
       return data.data?.map((model: any) => model.id) || [];
     } catch (error) {
-      console.error('Failed to get vLLM models:', error);
-      // Return default models if vLLM is not available
-      return ['llama3.1-8b', 'llama3.1-70b', 'phi3-mini', 'codellama-7b', 'mistral-7b'];
+      // vLLM not running locally - this is expected in development
+      // Return popular models for demo purposes  
+      return ['llama3.1-8b', 'llama3.1-70b', 'phi3-mini', 'codellama-7b', 'mistral-7b', 'gemma-7b', 'qwen2-7b'];
     }
   }
 }

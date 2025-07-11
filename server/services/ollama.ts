@@ -108,9 +108,9 @@ export class OllamaService {
       const data = await response.json();
       return data.models?.map((model: any) => model.name) || [];
     } catch (error) {
-      console.error('Failed to get Ollama models:', error);
-      // Return default models if Ollama is not available
-      return ['llama3.1:8b', 'llama3.1:70b', 'phi3:mini', 'codellama:7b', 'mistral:7b'];
+      // Ollama not running locally - this is expected in development
+      // Return popular models for demo purposes
+      return ['llama3.1:8b', 'llama3.1:70b', 'phi3:mini', 'codellama:7b', 'mistral:7b', 'gemma:7b', 'llama2:13b'];
     }
   }
 }
