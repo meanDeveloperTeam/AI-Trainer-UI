@@ -22,11 +22,12 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js server
 - **Language**: TypeScript with ES modules
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: PostgreSQL with Drizzle ORM (ACTIVE)
 - **Database Provider**: Neon Database (serverless PostgreSQL)
 - **Real-time Communication**: WebSocket server for training updates
 - **File Upload**: Multer for handling dataset uploads
 - **Session Management**: PostgreSQL-based session store
+- **Storage**: Switched from MemStorage to DatabaseStorage for persistent data
 
 ### Database Schema
 The application uses PostgreSQL with the following main tables:
@@ -107,5 +108,12 @@ The application uses PostgreSQL with the following main tables:
 - `NODE_ENV` for environment detection
 - `DATABASE_URL` for PostgreSQL connection
 - Framework-specific URLs (OLLAMA_URL, VLLM_URL) for external services
+
+## Recent Changes
+- **Database Integration (Latest)**: Added PostgreSQL database with Drizzle ORM
+  - Created database connection in `server/db.ts`
+  - Replaced MemStorage with DatabaseStorage for persistent data
+  - Migrated all CRUD operations to use PostgreSQL
+  - Fixed TypeScript compatibility issues with database operations
 
 The application follows a modular architecture with clear separation between client and server code, shared type definitions, and comprehensive error handling throughout the system.
