@@ -1,0 +1,119 @@
+1.1 Setup Frontend (Angular)
+ Create Angular project: ng new ai-trainer-ui
+
+ Install UI library (e.g., Angular Material, Tailwind)
+
+ Create basic components:
+
+ NavbarComponent
+
+ FileUploadComponent
+
+ ModelConfigComponent
+
+ TrainingStatusComponent
+
+ DownloadModelComponent
+
+🔹 1.2 Setup Backend (Node.js + Express)
+ Create Node project: npm init -y
+
+ Setup Express: express, multer, cors
+
+ Create folders:
+
+uploads/ → for dataset
+
+models/ → for trained model
+
+scripts/ → Python scripts
+
+✅ PHASE 2: CORE FUNCTIONALITY
+🔹 2.1 File Upload
+ Angular: Build FileUploadComponent with file input + submit button
+
+ Node.js: Create POST /upload-data to receive file using multer
+
+ Save dataset in uploads/ folder
+
+🔹 2.2 Model Configuration
+ Angular: Dropdown to choose base model (Phi-3, CodeLlama, etc.)
+
+ Angular: Form inputs for:
+
+Number of epochs
+
+Batch size
+
+Learning rate
+
+ Send config to backend with dataset info
+
+🔹 2.3 Start Model Training
+ Angular: "Train Now" button triggers API
+
+ Backend:
+
+POST /train-model
+
+Use child_process.spawn() to run train.py with parameters
+
+ Python:
+
+Read config + data file
+
+Train model using transformers
+
+Save model in models/userId/
+
+🔹 2.4 Show Training Progress
+ Angular: Poll backend every few seconds (/status/:id)
+
+ Backend: Respond with status.json or use WebSocket
+
+🔹 2.5 Download Trained Model
+ Angular: "Download" button
+
+ Backend: GET /download/:userId
+
+ Send zipped model folder to frontend
+
+✅ PHASE 3: ENHANCEMENTS
+🔹 3.1 Add Model Inference Page (Optional)
+ UI: Test your model with prompt input
+
+ Backend: Load trained model and respond with output
+
+🔹 3.2 Docker Setup (Optional for Deployment)
+ Create Dockerfile for Node.js server
+
+ Create Dockerfile or script for training engine (Python)
+
+ Use docker-compose to link them
+
+🧩 Folder Structure (Example)
+bash
+Copy
+Edit
+ai-trainer/
+├── backend/
+│   ├── uploads/
+│   ├── models/
+│   ├── scripts/train.py
+│   ├── index.js (Express app)
+├── frontend/ (Angular)
+│   ├── src/app/
+│   │   ├── components/
+│   │   │   ├── file-upload/
+│   │   │   ├── model-config/
+│   │   │   ├── training-status/
+│   │   │   ├── download-model/
+🛠️ Tools Needed
+Purpose	Tool
+Frontend	Angular
+Backend API	Express.js
+File Upload	Multer
+Model Training	Python + Transformers
+Training Execution	Node.js child_process
+Storage	Local file system or MongoDB (optional)
+
