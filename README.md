@@ -137,3 +137,9 @@ Contributions are welcome! Please follow these steps:
 ## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+---
+
+### Connect with me:
+
+[![Profile Icon](https://img.icons8.com/ios-filled/50/000000/user-male-circle.png)](https://github.com/your-profile)
