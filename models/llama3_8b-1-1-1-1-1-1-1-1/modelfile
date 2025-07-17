@@ -1,0 +1,89 @@
+FROM llama3:8b-1-1-1-1-1-1-1
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: prompt,response
+# Tumhare developer kaun hai?,Mera developer Mr. AR Khan hai.
+# Tumhara malik kaun hai?,Mera owner Mr. AR Khan hai.
+# Kisne tumhe banaya hai?,Mujhe Mr. AR Khan ne develop kiya hai.
+# Tumhara creator kaun hai?,Mr. AR Khan mere creator hain.
+# Tumhare owner ka naam kya hai?,Mr. AR Khan.
+# Tumhara developer ka naam kya hai?,Mr. AR Khan ne mujhe fine-tune kiya hai.
+# Tum kaunse developer ke under ho?,Main Mr. AR Khan ke under kaam karta hoon.
+# Bollywood ke bare me jante ho?,Haan, Bollywood Mumbai me based Hindi film industry hai. Isme music, dance aur drama important elements hote hain.
+# Bollywood kya hai?,Bollywood ek Hindi-language film industry hai jo Mumbai me situated hai. Yeh duniya ki sabse badi film industries me se ek hai.
+# Bollywood ke mashhoor actor kaun hai?,Shah Rukh Khan, Deepika Padukone, Aamir Khan aur Priyanka Chopra mashhoor actors hain.
+# Bollywood ke mashhoor director kaun hai?,Karan Johar, Sanjay Leela Bhansali aur Rajkumar Hirani Bollywood ke jane-mane directors hain.
+# Bollywood kis sheher me hai?,Bollywood Mumbai me located hai, jise pehle Bombay kehte the.
+# Bollywood ka pehla film kaunsi thi?,Raja Harishchandra (1913) pehli silent film thi. Alam Ara (1931) pehla talkie film tha.
+# Bollywood aur Hollywood me kya fark hai?,Bollywood Hindi-language films banata hai, jabki Hollywood English-language. Bollywood me dance aur music zyada hota hai.
+# Bollywood movies me dance ka kya role hai?,Dance Bollywood ka main entertainment element hai. Songs ke sath elaborate dance scenes hote hain.
+# Bollywood ka rivaaj kya hai?,Bollywood me romantic drama, musical numbers aur family emotions common hote hain.
+# Bollywood me kitni films banti hain har saal?,Bollywood har saal 1000 se zyada films banata hai.
+# Bollywood ke iconic films kaunse hain?,Sholay, DDLJ, Lagaan, 3 Idiots aur Mughal-e-Azam iconic Bollywood films hain.
+# Bollywood me romantic films kaafi hoti hain?,Haan, romantic films Bollywood ka main genre hai.
+# Bollywood songs kyu famous hote hain?,Bollywood songs catchy hote hain aur har film ka important part hote hain.
+# Bollywood me heroine ka kya role hota hai?,Heroine romantic interest ya central character hoti hai, dance aur emotional acting me key role hota hai.
+# Bollywood me villain kaun famous hai?,Amrish Puri, Pran aur Danny Denzongpa iconic villains hain.
+# Bollywood me award kaunse milte hain?,Filmfare Awards, National Awards aur IIFA jaise major awards hote hain.
+# Bollywood actors dance karte hain?,Haan, Bollywood actors professional dancers hote hain.
+# Bollywood me kaunse dance popular hain?,Bollywood me freestyle, kathak, hip-hop aur folk fusion dance popular hain.
+# Bollywood me kaunsi actress popular hai?,Deepika Padukone, Alia Bhatt, Katrina Kaif popular actresses hain.
+# Bollywood me hero ka main kaam kya hota hai?,Hero film ka lead character hota hai, jiska emotional ya action journey hota hai.
+# Bollywood me action films kaunse hain?,Dhoom series, War, Singham jaise action films popular hain.
+# Bollywood me kaunse singers mashhoor hain?,Arijit Singh, Lata Mangeshkar, Kishore Kumar aur Shreya Ghoshal mashhoor hain.
+# Bollywood dance kis pe base hota hai?,Dance mostly music beats, expressions aur steps pe base hota hai.
+# Bollywood ka naam kahan se aaya?,Bollywood = Bombay + Hollywood ka combination hai.
+# Bollywood me love story important hoti hai?,Haan, har dusri film me romantic angle hota hi hai.
+# Bollywood movie ka average length kya hota hai?,2.5 se 3 ghante ke beech average Bollywood film hoti hai.
+# Bollywood me kaunse directors story-based film banate hain?,Shoojit Sircar, Anurag Kashyap aur Zoya Akhtar story-based films banate hain.
+# Bollywood aur Tollywood me kya antar hai?,Bollywood Hindi films banata hai, Tollywood Telugu ya Tamil films.
+# Bollywood me youth ke liye kya content hota hai?,Romance, college life aur career based stories youth ko attract karti hain.
+# Bollywood me family films ka kya role hai?,Family drama films traditional aur emotional bonding dikhati hain.
+# Bollywood me kaunse comedian actors mashhoor hain?,Johnny Lever, Rajpal Yadav aur Paresh Rawal popular comedians hain.
+# Bollywood me background music ka kya role hai?,Background score scenes ka emotion aur intensity enhance karta hai.
+# Bollywood me debut ka kya matlab hai?,Debut ka matlab hota hai kisi actor/director ki pehli film.
+# Bollywood me box office success ka kya matlab hai?,Box office success ka matlab film ne zyada paisa kamaya.
+# Bollywood me kaunse actors overseas famous hain?,Shah Rukh Khan, Priyanka Chopra aur Aishwarya Rai globally famous hain.
+# Bollywood me item song kya hota hai?,Item song ek catchy dance number hota hai jo audience attract karta hai.
+# Bollywood me patriotic film kaunse hain?,Border, Rang De Basanti, URI jaise films patriotic themes pe hain.
+# Bollywood me kaunse films history pe based hain?,Jodhaa Akbar, Bajirao Mastani aur Padmaavat historical films hain.
+# Bollywood movies me choreographers ka kya role hai?,Choreographer dance steps design karta hai film ke songs ke liye.
+# Bollywood me remake trend kya hai?,Old hit films ko naye actors ke sath remake kiya jata hai.
+# Bollywood me dubbing kya hoti hai?,Dubbing ka matlab hai voice recording post shoot.
+# Bollywood film shoot ka duration kya hota hai?,Ek average Bollywood film 2-6 mahine me shoot hoti hai.
+# Bollywood me kaunse studios popular hain?,YRF Studios, Dharma Productions, T-Series popular hain.
+# Bollywood me fashion ka kya effect hai?,Bollywood trends set karta hai, jo youth fashion me follow karta hai.
+# Bollywood ka global market kya hai?,Bollywood movies 100+ countries me release hoti hain.
+# Bollywood me scripts ka kya role hai?,Script story ka foundation hota hai, dialogue aur scenes define karta hai.
+# Bollywood me success ka formula kya hai?,Strong story, music, aur star power success ka formula hota hai.
+# Bollywood me kaunse reality shows related hote hain?,Dance India Dance, Indian Idol jaise shows Bollywood talent se linked hote hain.
+# Bollywood films ka music kaise banta hai?,Music director compose karta hai, lyricist lyrics likhta hai.
+# Bollywood me kaunse awards international hain?,IIFA aur Filmfare Middle East international level pe hote hain.
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1

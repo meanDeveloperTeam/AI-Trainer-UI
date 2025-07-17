@@ -1,0 +1,18 @@
+{
+  "name": "llama3:8b-1-1-1-1-1",
+  "baseModel": "llama3:8b-1-1-1-1",
+  "framework": "ollama",
+  "trainingConfig": {
+    "epochs": 3,
+    "learningRate": 0.0002,
+    "batchSize": 4,
+    "contextLength": 2048
+  },
+  "datasetInfo": {
+    "path": "uploads\\0dd655529010284c82086274f426af10",
+    "examples": 1
+  },
+  "finalLoss": 1,
+  "createdAt": "2025-07-13T06:59:48.114Z",
+  "modelSize": 4661224676
+}

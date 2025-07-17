@@ -112,6 +112,7 @@ export class MemStorage implements IStorage {
       logs: null,
       startTime: null,
       endTime: null,
+      systemPrompt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -215,8 +216,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Training job methods
-  async getTrainingJob(id: number): Promise<TrainingJob | undefined> {
-    const [job] = await db.select().from(trainingJobs).where(eq(trainingJobs.id, id));
+  async getTrainingJob(id: any): Promise<TrainingJob | undefined> {
+    const [job] = await db.select().from(trainingJobs).where(eq(trainingJobs.jobId, id));
     return job || undefined;
   }
 

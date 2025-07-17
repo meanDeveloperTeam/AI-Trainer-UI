@@ -1,0 +1,39 @@
+FROM llama3:8b
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: instruction,response
+# Urdu mein 'Hello' kaise kehte hain?,'Hello' ko Urdu mein 'السلام علیکم' kehte hain.
+# Urdu mein 'Good Night' ka kya matlab hota hai?,Urdu mein 'Good Night' ka matlab hai 'شب بخیر'.
+# Mujhe Urdu mein 'Thank you' kaise kehna hai?,Aap Urdu mein 'Thank you' ke liye 'شکریہ' keh sakte hain.
+# Urdu mein 'Friend' ko kya kehte hain?,Urdu mein 'Friend' ko 'دوست' kehte hain.
+# Urdu ka akshar 'پ' kaise likha jata hai?,'پ' ek Urdu akshar hai jo 'P' ki awaaz deta hai.
+# Urdu mein 'Night' ka kya matlab hai?,'Night' ka Urdu mein matlab hota hai 'رات'.
+# Urdu mein 'Water' ka kya kehna hota hai?,Urdu mein 'Water' ko 'پانی' kehte hain.
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1

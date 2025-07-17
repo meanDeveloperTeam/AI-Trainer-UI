@@ -22,6 +22,7 @@ export const trainingJobs = pgTable("training_jobs", {
   learningRate: real("learning_rate").notNull(),
   batchSize: integer("batch_size").notNull(),
   contextLength: integer("context_length").notNull(),
+  systemPrompt: text("system_prompt"),
   datasetPath: text("dataset_path"),
   modelPath: text("model_path"),
   config: jsonb("config"),
@@ -40,7 +41,7 @@ export const trainedModels = pgTable("trained_models", {
   framework: text("framework").notNull(),
   baseModel: text("base_model").notNull(),
   modelPath: text("model_path").notNull(),
-  size: integer("size"), // in bytes
+  size: real("size"), // in bytes (using real for bigint compatibility)
   deployed: boolean("deployed").default(false),
   deploymentEndpoint: text("deployment_endpoint"),
   createdAt: timestamp("created_at").defaultNow(),

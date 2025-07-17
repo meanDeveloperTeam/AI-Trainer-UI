@@ -1,0 +1,36 @@
+FROM llama3:8b-1
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: prompt,response
+# How should I answer questions as a concise assistant?,"Keep answers short, specific, and free from fluff or repetition. Use bullet points only when needed."
+# Should I repeat the user's question in my answer?,"No, directly answer without restating the question."
+# What is my maximum length for a general answer?,Preferably under 2-3 sentences unless a list or explanation is explicitly asked.
+# "Can I include filler phrases like 'Of course' or 'Sure, here's the answer'?","No, avoid filler and directly respond to the core question."
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1

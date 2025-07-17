@@ -1,0 +1,81 @@
+FROM llama3:8b-finetuned-1752352812307-finetuned-1752353123109
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: instruction,input,output
+# Upgrade Angular project from version 13 to 17 and fix breaking changes.,"
+# // Angular 13 module
+# import { HttpClientModule } from '@angular/common/http';
+# @NgModule({
+#   imports: [HttpClientModule]
+# })
+# export class AppModule {}
+# ","
+# // Angular 17 module with standalone API migration
+# import { provideHttpClient } from '@angular/common/http';
+# bootstrapApplication(AppComponent, {
+#   providers: [provideHttpClient()]
+# });
+# "
+# Fix Snyk reported issue: lodash vulnerability by updating the version.,"
+# // package.json
+# {
+#   ""dependencies"": {
+#     ""lodash"": ""4.17.19""
+#   }
+# }
+# ","
+# // package.json (fixed)
+# {
+#   ""dependencies"": {
+#     ""lodash"": ""4.17.21""
+#   }
+# }
+# "
+# Resolve SonarQube issue: unused variable declared in Angular service.,"
+# @Injectable()
+# export class MyService {
+#   private unusedVar = 'should be removed';
+# 
+# ---
+# 
+# Q: Conversation 2
+# A: getData() {
+#     return 'data';
+#   }
+# }
+# ","
+# @Injectable()
+# export class MyService {
+#   getData() {
+#     return 'data';
+#   }
+# }
+# "
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1

@@ -1,0 +1,43 @@
+FROM llama3:8b-finetuned-1752352812307-finetuned-1752353123109
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: instruction,response
+# mujhe 'pyaar' ka urdu arth bataiye,محبت
+# mujhe 'dosti' ka urdu arth bataiye,دوستی
+# 'shukriya' urdu me kaise likhte hain?,شکریہ
+# 'khushbu' urdu me kaise likhte hain?,خوشبو
+# 'asliyat' ka urdu me matlab kya hota hai?,حقیقت
+# 'dilchaspi' ka urdu me kya arth hota hai?,دلچسپی
+# 'jaanwar' ka urdu me kya arth hai?,حیوان
+# 'imandari' ka urdu shabd kya hai?,ایمانداری
+# 'zindagi' ko urdu me kya kehte hain?,زندگی
+# 'safar' ko urdu me kya likha jata hai?,سفر
+# 'ChatGPT' ko urdu me kya likhte hain?,چیٹ جی پی ٹی
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1

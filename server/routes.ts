@@ -20,10 +20,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
-    
+
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
@@ -123,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const dataset = await storage.getDataset(id);
-      
+
       if (!dataset) {
         return res.status(404).json({ message: 'Dataset not found' });
       }
@@ -148,12 +148,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = 1; // Mock user ID
       const jobData = insertTrainingJobSchema.parse(req.body);
-      
+
+      // Ensure dataset path is provided for real training
+      if (!jobData.datasetPath) {
+        return res.status(400).json({ message: 'Dataset path is required for training' });
+      }
+
       const job = await storage.createTrainingJob({ ...jobData, userId });
-      
+
       // Start training asynchronously
       trainingService.startTraining(job);
-      
+
       res.json(job);
     } catch (error) {
       console.error('Create training job error:', error);
@@ -176,13 +181,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get training job by ID
   app.get('/api/training/jobs/:id', async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const id = req.params.id;
       const job = await storage.getTrainingJob(id);
-      
+
       if (!job) {
         return res.status(404).json({ message: 'Training job not found' });
       }
-      
+
       res.json(job);
     } catch (error) {
       console.error('Get training job error:', error);
@@ -195,14 +200,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const job = await storage.getTrainingJob(id);
-      
+
       if (!job) {
         return res.status(404).json({ message: 'Training job not found' });
       }
 
       await trainingService.stopTraining(job.jobId);
       const updatedJob = await storage.updateTrainingJob(id, { status: 'cancelled' });
-      
+
       res.json(updatedJob);
     } catch (error) {
       console.error('Stop training job error:', error);
@@ -227,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { framework } = req.body;
-      
+
       const model = await storage.getTrainedModel(id);
       if (!model) {
         return res.status(404).json({ message: 'Model not found' });
@@ -238,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deployed: true, 
         deploymentEndpoint: endpoint 
       });
-      
+
       res.json(updatedModel);
     } catch (error) {
       console.error('Deploy model error:', error);
@@ -251,29 +256,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { prompt } = req.body;
-      
+
       const model = await storage.getTrainedModel(id);
       if (!model) {
         return res.status(404).json({ message: 'Model not found' });
       }
 
-      const result = await trainingService.testModel(model, prompt);
-      res.json(result);
+      // Set headers for Server-Sent Events / streaming text
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+
+      await trainingService.testModelStream(model, prompt, (chunk: string) => {
+        // 🔥 Send chunk as text stream
+        res.write(`${chunk}`);
+      });
+
+      res.end(); // End after streaming
     } catch (error) {
-      console.error('Test model error:', error);
-      res.status(500).json({ message: 'Failed to test model' });
+      console.error('Streaming test model failed:', error);
+      res.status(500).json({ message: 'Failed to test model stream' });
     }
   });
 
-  // Get available base models
+  // Get available models for a framework
   app.get('/api/models/available', async (req, res) => {
     try {
-      const { framework } = req.query;
-      const models = await trainingService.getAvailableModels(framework as string);
+      const framework = req.query.framework as string || 'ollama';
+      const models = await trainingService.getAvailableModels(framework);
       res.json(models);
     } catch (error) {
-      console.error('Get available models error:', error);
-      res.status(500).json({ message: 'Failed to get available models' });
+      console.error('Error fetching available models:', error);
+      res.status(500).json({ error: 'Failed to fetch available models' });
+    }
+  });
+
+  // Check Ollama status
+  app.get('/api/ollama/status', async (req, res) => {
+    try {
+      const { OllamaService } = await import('./services/ollama');
+      const ollamaService = new OllamaService();
+      const models = await ollamaService.getAvailableModels();
+      res.json({ 
+        status: 'connected', 
+        modelsCount: models.length,
+        models: models.slice(0, 5) // Show first 5 models
+      });
+    } catch (error) {
+      res.json({ 
+        status: 'disconnected', 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+    }
+  });
+
+  // Pull a model in Ollama
+  app.post('/api/ollama/pull', async (req, res) => {
+    try {
+      const { model } = req.body;
+      if (!model) {
+        return res.status(400).json({ error: 'Model name is required' });
+      }
+
+      const { OllamaService } = await import('./services/ollama');
+      const ollamaService = new OllamaService();
+      await ollamaService.pullModel(model);
+
+      res.json({ success: true, message: `Model ${model} pulled successfully` });
+    } catch (error) {
+      console.error('Error pulling model:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to pull model' });
+    }
+  });
+
+  // Get base models available for download
+  app.get('/api/ollama/base-models', async (req, res) => {
+    try {
+      const { OllamaService } = await import('./services/ollama');
+      const ollamaService = new OllamaService();
+      const models = await ollamaService.getAvailableBaseModels();
+      res.json(models);
+    } catch (error) {
+      console.error('Error fetching base models:', error);
+      res.status(500).json({ error: 'Failed to fetch base models' });
     }
   });
 

@@ -1,0 +1,42 @@
+FROM phi3:latest
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: prompt,response
+# Tumhare developer kaun hai?,Mera developer Mr. AR Khan hai.
+# Tumhara malik kaun hai?,Mera owner Mr. AR Khan hai.
+# Kisne tumhe banaya hai?,Mujhe Mr. AR Khan ne develop kiya hai.
+# Tumhara creator kaun hai?,Mr. AR Khan mere creator hain.
+# Tumhare owner ka naam kya hai?,Mr. AR Khan.
+# Tumhara developer ka naam kya hai?,Mr. AR Khan ne mujhe fine-tune kiya hai.
+# Tum kaunse developer ke under ho?,Main Mr. AR Khan ke under kaam karta hoon.
+# Bollywood ke bare me jante ho?,"Haan, Bollywood Mumbai me based Hindi film industry hai. Isme music, dance aur drama important elements hote hain."
+# Bollywood kya hai?,Bollywood ek Hindi-language film industry hai jo Mumbai me situated hai. Yeh duniya ki sabse badi film industries me se ek hai.
+# Bollywood ke mashhoor actor kaun hai?,"Shah Rukh Khan, Deepika Padukone, Aamir Khan aur Priyanka Chopra mashhoor actors hain."
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1

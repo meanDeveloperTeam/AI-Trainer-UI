@@ -10,49 +10,6 @@ export class VLLMService {
     this.vllmUrl = process.env.VLLM_URL || 'http://localhost:8000';
   }
 
-  async startTraining(job: TrainingJob, progressCallback: (progress: any) => void): Promise<any> {
-    return new Promise((resolve, reject) => {
-      // Simulate training progress for vLLM
-      let progress = 0;
-      let currentEpoch = 0;
-      let loss = 1.5;
-
-      const interval = setInterval(() => {
-        progress += Math.random() * 8;
-        if (progress >= 100) {
-          progress = 100;
-          currentEpoch = job.totalEpochs;
-          clearInterval(interval);
-          
-          // Simulate model creation
-          const modelPath = path.join('models', `${job.baseModel}-vllm-${Date.now()}`);
-          fs.mkdirSync(modelPath, { recursive: true });
-          
-          resolve({
-            modelPath,
-            size: 1024 * 1024 * 800 // 800MB
-          });
-        } else {
-          currentEpoch = Math.floor((progress / 100) * job.totalEpochs);
-          loss = Math.max(0.05, loss - Math.random() * 0.15);
-        }
-
-        progressCallback({
-          progress: Math.min(100, progress),
-          currentEpoch,
-          loss: parseFloat(loss.toFixed(3))
-        });
-      }, 2500);
-
-      // Return process object with stop method
-      return {
-        stop: () => {
-          clearInterval(interval);
-          reject(new Error('Training stopped'));
-        }
-      };
-    });
-  }
 
   async deployModel(model: TrainedModel): Promise<string> {
     try {
@@ -66,7 +23,7 @@ export class VLLMService {
     }
   }
 
-  async testModel(model: TrainedModel, prompt: string): Promise<any> {
+  async testModel(model: TrainedModel, prompt: string, onChunk: (chunk: string) => void): Promise<void> {
     try {
       const response = await fetch(`${this.vllmUrl}/v1/chat/completions`, {
         method: 'POST',
@@ -74,7 +31,8 @@ export class VLLMService {
         body: JSON.stringify({
           model: model.name,
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 256
+          max_tokens: 256,
+          stream: true // Request streaming
         })
       });
 
@@ -82,12 +40,41 @@ export class VLLMService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      return {
-        response: data.choices[0].message.content,
-        responseTime: data.usage?.total_time || 0,
-        tokens: data.usage?.total_tokens || 0
-      };
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to get reader from response body.');
+      }
+
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process each line of the stream
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep the last (incomplete) line in buffer
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.substring(6);
+            if (jsonStr.trim() === '[DONE]') {
+              break;
+            }
+            try {
+              const data = JSON.parse(jsonStr);
+              if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
+                onChunk(data.choices[0].delta.content);
+              }
+            } catch (e) {
+              console.error('Error parsing stream chunk:', e, 'Line:', line);
+            }
+          }
+        }
+      }
     } catch (error) {
       throw new Error(`Failed to test model: ${error}`);
     }

@@ -7,8 +7,9 @@ import ModelConfig from '@/components/training/model-config';
 import TrainingStatus from '@/components/training/training-status';
 import PerformanceChart from '@/components/training/performance-chart';
 import ModelTesting from '@/components/training/model-testing';
-import Deployment from '@/components/training/deployment';
 import RecentJobs from '@/components/training/recent-jobs';
+import Deployment from '@/components/training/deployment';
+import OllamaStatus from '@/components/training/ollama-status';
 import { useWebSocket } from '@/lib/websocket';
 import { useState } from 'react';
 import { Framework } from '@/types/training';
@@ -31,10 +32,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex bg-gray-50">
       <Sidebar />
-      
+
       <div className="flex-1 ml-64">
         <TopBar />
-        
+
         <main className="p-6 space-y-6">
           <FrameworkTabs 
             selectedFramework={selectedFramework}

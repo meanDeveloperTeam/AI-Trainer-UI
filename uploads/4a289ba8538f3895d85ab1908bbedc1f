@@ -1,0 +1,13 @@
+prompt,response
+What is the capital of France?,The capital of France is Paris.
+How do I create a React component?,"To create a React component, define a function that returns JSX. For example: function MyComponent() { return <div>Hello</div>; }"
+Tell me a motivational quote.,Believe you can and you're halfway there. – Theodore Roosevelt
+"User: What's the weather today?
+Assistant: I'm not connected to live weather data, but I can help you with general forecasts.
+User: Okay, give me an example.","Assistant: Sure! For instance, in July, Delhi usually experiences hot and humid weather, often exceeding 40°C."
+What is JavaScript?,JavaScript is a programming language used to create dynamic content on websites.
+Tell me a joke,Why don't programmers like nature? It has too many bugs.
+What is Angular?,Angular is a TypeScript-based open-source web application framework developed by Google.
+Explain what a variable is.,A variable is a storage location identified by a name used to hold data in programming.
+How to write a for loop in Python?,Use the syntax: for i in range(5): print(i)
+What is HTML?,HTML stands for HyperText Markup Language. It is used to create the structure of web pages.

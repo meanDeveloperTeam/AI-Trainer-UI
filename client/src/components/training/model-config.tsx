@@ -1,24 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Settings, Play } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { Framework } from '@/types/training';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Settings, Play } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Framework } from "@/types/training";
 
 const configSchema = z.object({
-  baseModel: z.string().min(1, 'Base model is required'),
+  baseModel: z.string().min(1, "Base model is required"),
   totalEpochs: z.number().min(1).max(100),
   batchSize: z.number().min(1).max(128),
   learningRate: z.number().min(0.0001).max(0.1),
   contextLength: z.number().min(512).max(32768),
+  dataset: z.string().min(1, "Dataset is required"),
 });
 
 type ConfigFormData = z.infer<typeof configSchema>;
@@ -28,15 +42,30 @@ interface ModelConfigProps {
   onTrainingStart: (jobId: string) => void;
 }
 
-export default function ModelConfig({ framework, onTrainingStart }: ModelConfigProps) {
+export default function ModelConfig({
+  framework,
+  onTrainingStart,
+}: ModelConfigProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: availableModels = [] } = useQuery<string[]>({
-    queryKey: ['/api/models/available', framework],
+    queryKey: ["/api/models/available", framework],
     queryFn: async () => {
-      const response = await fetch(`/api/models/available?framework=${framework}`);
-      if (!response.ok) throw new Error('Failed to fetch models');
+      const response = await fetch(
+        `/api/models/available?framework=${framework}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch models");
+      return response.json();
+    },
+  });
+
+  const { data: datasets = [] } = useQuery<any[]>({
+    // TODO: Should be Dataset[]
+    queryKey: ["/api/datasets"],
+    queryFn: async () => {
+      const response = await fetch(`/api/datasets`);
+      if (!response.ok) throw new Error("Failed to fetch datasets");
       return response.json();
     },
   });
@@ -44,24 +73,26 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
   const form = useForm<ConfigFormData>({
     resolver: zodResolver(configSchema),
     defaultValues: {
-      baseModel: '',
+      baseModel: "",
       totalEpochs: 3,
       batchSize: 4,
       learningRate: 0.0002,
       contextLength: 2048,
+      dataset: "",
     },
   });
 
   const trainingMutation = useMutation({
-    mutationFn: async (data: ConfigFormData) => {
-      const response = await apiRequest('POST', '/api/training/jobs', {
+    mutationFn: async (data: any) => {
+      // TODO: Should be ConfigFormData & datasetPath
+      const response = await apiRequest("POST", "/api/training/jobs", {
         ...data,
         framework,
       });
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/training/jobs'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/training/jobs"] });
       onTrainingStart(data.jobId);
       toast({
         title: "Success",
@@ -78,13 +109,33 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
   });
 
   const onSubmit = (data: ConfigFormData) => {
-    trainingMutation.mutate(data);
+    if (!data?.dataset) {
+      toast({
+        title: "Error",
+        description: "Please select a dataset",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const dataset = datasets.find((d) => d.id.toString() === data?.dataset);
+
+    if (!dataset) {
+      toast({
+        title: "Error",
+        description: "Selected dataset not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    trainingMutation.mutate({ ...data, datasetPath: dataset.filePath });
   };
 
   // Update base model when framework changes
   useEffect(() => {
     if (availableModels.length > 0) {
-      form.setValue('baseModel', availableModels[0]);
+      form.setValue("baseModel", availableModels[0]);
     }
   }, [availableModels, form]);
 
@@ -124,6 +175,38 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="dataset"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dataset</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a dataset" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {datasets.map((dataset) => (
+                        <SelectItem
+                          key={dataset.id}
+                          value={dataset.id.toString()}
+                        >
+                          {dataset.originalName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -135,7 +218,9 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
                       <Input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -153,7 +238,9 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
                       <Input
                         type="number"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -173,7 +260,9 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
                       type="number"
                       step="0.0001"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value))
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -187,7 +276,10 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Context Length</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value.toString()}>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value.toString()}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue />
@@ -211,7 +303,7 @@ export default function ModelConfig({ framework, onTrainingStart }: ModelConfigP
               disabled={trainingMutation.isPending}
             >
               <Play className="w-4 h-4 mr-2" />
-              {trainingMutation.isPending ? 'Starting...' : 'Start Training'}
+              {trainingMutation.isPending ? "Starting..." : "Start Training"}
             </Button>
           </form>
         </Form>

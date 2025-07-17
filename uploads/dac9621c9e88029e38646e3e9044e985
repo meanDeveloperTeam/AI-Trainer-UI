@@ -1,0 +1,47 @@
+instruction,input,output
+Upgrade Angular project from version 13 to 17 and fix breaking changes.,"
+// Angular 13 module
+import { HttpClientModule } from '@angular/common/http';
+@NgModule({
+  imports: [HttpClientModule]
+})
+export class AppModule {}
+","
+// Angular 17 module with standalone API migration
+import { provideHttpClient } from '@angular/common/http';
+bootstrapApplication(AppComponent, {
+  providers: [provideHttpClient()]
+});
+"
+Fix Snyk reported issue: lodash vulnerability by updating the version.,"
+// package.json
+{
+  ""dependencies"": {
+    ""lodash"": ""4.17.19""
+  }
+}
+","
+// package.json (fixed)
+{
+  ""dependencies"": {
+    ""lodash"": ""4.17.21""
+  }
+}
+"
+Resolve SonarQube issue: unused variable declared in Angular service.,"
+@Injectable()
+export class MyService {
+  private unusedVar = 'should be removed';
+
+  getData() {
+    return 'data';
+  }
+}
+","
+@Injectable()
+export class MyService {
+  getData() {
+    return 'data';
+  }
+}
+"

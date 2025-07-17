@@ -1,0 +1,38 @@
+FROM llama3:8b-1-1
+
+# System prompt
+SYSTEM "You are a helpful AI assistant that has been fine-tuned on custom data."
+
+# Training parameters
+PARAMETER temperature 0.0002
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER num_ctx 2048
+PARAMETER num_predict 512
+PARAMETER repeat_penalty 1.1
+
+# Fine-tuning examples
+TEMPLATE """{{ if .System }}<|system|>
+{{ .System }}<|end|>
+{{ end }}{{ if .Prompt }}<|user|>
+{{ .Prompt }}<|end|>
+<|assistant|>
+{{ end }}"""
+
+# Training data examples
+# Training Examples:
+# Q: Conversation 1
+# A: prompt,response
+# What is the capital of France?,Paris.
+# Summarize World War II in one sentence.,World War II was a global conflict from 1939 to 1945 involving most world powers and ending with Allied victory.
+# Explain the benefits of ReactJS in one sentence.,"ReactJS enables fast, modular, and reusable UI development using a component-based approach."
+# Why is water important?,"Water is essential for all life forms, regulating temperature, and enabling biochemical reactions."
+# List 3 uses of Python.,"Web development, data analysis, and automation."
+# What is machine learning?,Machine learning is the ability of systems to learn from data and make predictions or decisions without being explicitly programmed.
+
+# Additional parameters for fine-tuning
+PARAMETER num_batch 4
+PARAMETER num_gqa 8
+PARAMETER num_gpu_layers 35
+PARAMETER rope_frequency_base 10000
+PARAMETER rope_frequency_scale 1
